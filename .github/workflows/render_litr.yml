@@ -32,7 +32,7 @@ jobs:
             install.packages.check.source = "no",
             pkgType = "binary"
           )
-          install.packages("remotes", type="binary")
+          install.packages("remotes")
           remotes::install_cran("knitr")
           remotes::install_cran("rmarkdown")
         shell: Rscript {0}
