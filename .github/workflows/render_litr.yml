@@ -25,7 +25,7 @@ jobs:
       
       - name: Install litr and dependencies
         run: |
-          Rscript -e 'install.packages(c("knitr", "rmarkdown"))'
+          Rscript -e 'install.packages(c("knitr", "rmarkdown", "remotes"))'
           Rscript -e 'remotes::install_github("jacobbien/litr-project@*release", subdir = "litr")'
       - name: Render Rmarkdown files and Commit Results
         run: |
