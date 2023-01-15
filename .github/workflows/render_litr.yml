@@ -35,9 +35,7 @@ jobs:
             install.packages.check.source = "no",
             pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
           )
-          install.packages("remotes")
-          remotes::install_cran("knitr")
-          remotes::install_cran("rmarkdown")
+          install.packages("remotes", "knitr", "rmarkdown")
         shell: Rscript {0}
 
       - name: Install litr
@@ -47,7 +45,7 @@ jobs:
             install.packages.check.source = "no",
             pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
           )
-          remotes::install_github("jacobbien/litr-project@*release", subdir = "litr")
+          renv::install("jacobbien/litr-project:litr@*release")
         shell: Rscript {0}
       - name: Set environment variables
         run: |
