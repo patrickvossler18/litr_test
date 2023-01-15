@@ -73,6 +73,7 @@ testthat::test_that("say_hello works", {
 
 Code chunks that have one or more lines starting with `test_that(` (or `testthat::test_that(`) are added to the package as tests.
 
+
 ## Documenting the package and building
 
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.
