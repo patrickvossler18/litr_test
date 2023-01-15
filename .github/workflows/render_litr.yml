@@ -66,6 +66,6 @@ jobs:
           Rscript -e 'for (f in commandArgs(TRUE)) if (file.exists(f)) litr::render(f)' ${RMD_PATH[*]}
           git config --local user.name "$GITHUB_ACTOR"
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          git add *
+          git add ${RMD_FILENAME}.html ${PKG_NAME}/
           git commit -m 'Re-build Litr file and package' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
