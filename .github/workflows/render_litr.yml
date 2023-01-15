@@ -24,11 +24,28 @@ jobs:
 
       - name: Install ubuntu dependencies avoid installation errors
         run: sudo apt-get install libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
-
-      - name: Install litr and dependencies
+      
+      - name: Install R dependencies
         run: |
-          Rscript -e 'install.packages(c("knitr", "rmarkdown", "remotes"))'
-          Rscript -e 'remotes::install_github("jacobbien/litr-project@*release", subdir = "litr")'
+          options(
+            crayon.enabled = TRUE,
+            install.packages.check.source = "no",
+            pkgType = "binary"
+          )
+          install.packages("remotes", type="binary")
+          remotes::install_cran("knitr")
+          remotes::install_cran("rmarkdown")
+        shell: Rscript {0}
+
+      - name: Install litr
+        run: |
+          options(
+            crayon.enabled = TRUE,
+            install.packages.check.source = "no",
+            pkgType = "binary"
+          )
+          remotes::install_github("jacobbien/litr-project@*release", subdir = "litr")
+        shell: Rscript {0}
       - name: Set environment variables
         run: |
           TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd]' -exec basename {} \;))
