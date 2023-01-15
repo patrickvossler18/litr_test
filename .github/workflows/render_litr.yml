@@ -30,7 +30,7 @@ jobs:
           options(
             crayon.enabled = TRUE,
             install.packages.check.source = "no",
-            pkgType = "binary"
+            pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
           )
           install.packages("remotes")
           remotes::install_cran("knitr")
@@ -42,7 +42,7 @@ jobs:
           options(
             crayon.enabled = TRUE,
             install.packages.check.source = "no",
-            pkgType = "binary"
+            pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
           )
           remotes::install_github("jacobbien/litr-project@*release", subdir = "litr")
         shell: Rscript {0}
