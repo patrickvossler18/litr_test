@@ -37,10 +37,11 @@ jobs:
           echo "$PKG_NAME"
           RMD_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "$TOP_LEVEL_RMD"))
           echo "$RMD_PATH"
-          echo "::set-env name=RMD_PATH::$RMD_PATH"
-          echo "::set-env name=RMD_FILENAME::$RMD_FILENAME"
-          echo "::set-env name=PKG_NAME::$PKG_NAME"
-          echo "::set-env name=TOP_LEVEL_RMD::$TOP_LEVEL_RMD"
+
+          echo "RMD_PATH=$RMD_PATH" >> $GITHUB_ENV
+          echo "RMD_FILENAME=$RMD_FILENAME" >> $GITHUB_ENV
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "$TOP_LEVEL_RMD"=$TOP_"$TOP_LEVEL_RMD"" >> $GITHUB_ENV
       - name: Render Rmarkdown files and Commit Results
         run: |
           Rscript -e 'for (f in commandArgs(TRUE)) if (file.exists(f)) litr::render(f)' ${RMD_PATH[*]}
