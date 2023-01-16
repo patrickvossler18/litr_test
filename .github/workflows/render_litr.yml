@@ -27,12 +27,15 @@ jobs:
         run: sudo apt-get install libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
       
       - uses: r-lib/actions/setup-renv@v2
+        with: 
+          cache-version: 2
 
       - name: Try loading renv then restoring
         run: |
           renv::load()
           .libPaths()
           renv::restore()
+          renv::status()
         shell: Rscript {0}
       
       # - name: Install R dependencies
@@ -45,15 +48,15 @@ jobs:
       #     install.packages(c("remotes", "knitr", "rmarkdown"))
       #   shell: Rscript {0}
 
-      # - name: Install litr
-      #   run: |
-      #     options(
-      #       crayon.enabled = TRUE,
-      #       install.packages.check.source = "no",
-      #       pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
-      #     )
-      #     renv::install("jacobbien/litr-project:litr@*release")
-      #   shell: Rscript {0}
+      - name: Install litr
+        run: |
+          options(
+            crayon.enabled = TRUE,
+            install.packages.check.source = "no",
+            pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
+          )
+          renv::install("jacobbien/litr-project:litr@*release")
+        shell: Rscript {0}
       - name: Set environment variables
         run: |
           TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd]' -exec basename {} \;))
