@@ -27,6 +27,13 @@ jobs:
         run: sudo apt-get install libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
       
       - uses: r-lib/actions/setup-renv@v2
+
+      - name: Try loading renv then restoring
+        run: |
+          renv::load()
+          .libPaths()
+          renv::restore()
+        shell: Rscript {0}
       
       # - name: Install R dependencies
       #   run: |
