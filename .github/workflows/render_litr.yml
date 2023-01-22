@@ -44,7 +44,7 @@ jobs:
           IS_BOOKDOWN=0
           # find doesn't allow capture groups so we'll have to separate searches
           SEARCH_INDEX=($(find . -maxdepth 1 -type f  -regex '.*index\.[Rr][Mm][Dd])' -exec basename {} \;))
-          
+          echo "$SEARCH_INDEX"
           # if SEARCH_INDEX IS NULL
           if [ -z  "$SEARCH_INDEX" ]; then
             TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd])' -exec basename {} \;))
