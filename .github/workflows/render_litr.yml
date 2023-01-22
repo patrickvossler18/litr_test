@@ -42,7 +42,7 @@ jobs:
       - name: Set environment variables
         run: |
           IS_BOOKDOWN=0
-          TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '(.*create-.*\.[Rr][Mm][Dd])|(index\.[Rr][Mm][Dd])' -exec basename {} \;))
+          TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '(.*create-.*\.[Rr][Mm][Dd])|(.*index\.[Rr][Mm][Dd])' -exec basename {} \;))
           RMD_FILENAME=${TOP_LEVEL_RMD/.*/}
           # if the file name is "index" then we need to look for the package name elsewhere
           # we will look for the *-package.R file and get the package name
