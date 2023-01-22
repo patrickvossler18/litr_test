@@ -42,17 +42,21 @@ jobs:
       - name: Set environment variables
         run: |
           IS_BOOKDOWN=0
-          TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '(.*create-.*\.[Rr][Mm][Dd])|(.*index\.[Rr][Mm][Dd])' -exec basename {} \;))
-          RMD_FILENAME=${TOP_LEVEL_RMD/.*/}
-          # if the file name is "index" then we need to look for the package name elsewhere
-          # we will look for the *-package.R file and get the package name
-          if [[ $RMD_FILENAME == "index" ]]; then
+          # find doesn't allow capture groups so we'll have to separate searches
+          SEARCH_INDEX=($(find . -maxdepth 1 -type f  -regex '.*index\.[Rr][Mm][Dd])' -exec basename {} \;))
+          
+          # if SEARCH_INDEX IS NULL
+          if [ -z  "$SEARCH_INDEX" ]; then
+            TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd])' -exec basename {} \;))
+            RMD_FILENAME=${TOP_LEVEL_RMD/.*/}
+            PKG_NAME=$(echo "$RMD_FILENAME" | rev | cut -d- -f1 | rev)  
+          else
+            # if the file name is "index" then we need to look for the package name elsewhere
+            # we will look for the *-package.R file and get the package name
+            IS_BOOKDOWN=1
+            TOP_LEVEL_RMD=$(echo "$SEARCH_INDEX")
             RMD_FILENAME=($(find . -type f -regex '.*-package\.R' -exec basename {} \;))
             PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
-            IS_BOOKDOWN=1
-          else
-            PKG_NAME=$(echo "$RMD_FILENAME" | rev | cut -d- -f1 | rev)  
-          fi
           
           RMD_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "$TOP_LEVEL_RMD"))
           # debugging echos
