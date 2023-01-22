@@ -57,6 +57,7 @@ jobs:
             TOP_LEVEL_RMD=$(echo "$SEARCH_INDEX")
             RMD_FILENAME=($(find . -type f -regex '.*-package\.R' -exec basename {} \;))
             PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
+          fi
           
           RMD_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "$TOP_LEVEL_RMD"))
           # debugging echos
