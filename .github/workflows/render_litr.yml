@@ -2,7 +2,8 @@
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
-    paths: ['create-*.Rmd', 'source-files/**']
+    # this should run on any changes to *.Rmd files and any file in source-files
+    paths: ['*.Rmd', 'source-files/**']
 
 name: render-litr
 
@@ -12,7 +13,6 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_COMPILE_AND_INSTALL_PACKAGES: never
-      RENV_PATHS_ROOT: ~/.cache/R/renv
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -27,26 +27,6 @@ jobs:
         run: sudo apt-get install libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
       
       - uses: r-lib/actions/setup-renv@v2
-        with: 
-          cache-version: 2
-
-      - name: Try loading renv then restoring
-        run: |
-          renv::load()
-          .libPaths()
-          renv::restore()
-          renv::status()
-        shell: Rscript {0}
-      
-      # - name: Install R dependencies
-      #   run: |
-      #     options(
-      #       crayon.enabled = TRUE,
-      #       install.packages.check.source = "no",
-      #       pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
-      #     )
-      #     install.packages(c("remotes", "knitr", "rmarkdown"))
-      #   shell: Rscript {0}
 
       - name: Install litr
         run: |
@@ -59,23 +39,41 @@ jobs:
         shell: Rscript {0}
       - name: Set environment variables
         run: |
-          TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd]' -exec basename {} \;))
-          echo "$TOP_LEVEL_RMD"
+          IS_BOOKDOWN=0
+          TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '(.*create-.*\.[Rr][Mm][Dd])|(index\.[Rr][Mm][Dd])' -exec basename {} \;))
           RMD_FILENAME=${TOP_LEVEL_RMD/.*/}
-          PKG_NAME=$(echo "$RMD_FILENAME" | rev | cut -d- -f1 | rev)
-          echo "$PKG_NAME"
+          # if the file name is "index" then we need to look for the package name elsewhere
+          # we will look for the *-package.R file and get the package name
+          if [[ $RMD_FILENAME == "index" ]]; then
+            RMD_FILENAME=($(find . -name '*-package.R' -exec basename {} \;))
+            PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
+            IS_BOOKDOWN=1
+          else
+            PKG_NAME=$(echo "$RMD_FILENAME" | rev | cut -d- -f1 | rev)  
+          fi
+          
           RMD_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "$TOP_LEVEL_RMD"))
+          # debugging echos
+          echo "$TOP_LEVEL_RMD"
+          echo "$PKG_NAME"
           echo "$RMD_PATH"
+          echo "$IS_BOOKDOWN"
 
+          # add variables to GH env to access them in the next step
           echo "RMD_PATH=$RMD_PATH" >> $GITHUB_ENV
           echo "RMD_FILENAME=$RMD_FILENAME" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
           echo "$TOP_LEVEL_RMD=$TOP_LEVEL_RMD" >> $GITHUB_ENV
+          echo "$IS_BOOKDOWN=$IS_BOOKDOWN" >> $GITHUB_ENV
       - name: Render Rmarkdown files and Commit Results
         run: |
           Rscript -e 'for (f in commandArgs(TRUE)) if (file.exists(f)) litr::render(f)' ${RMD_PATH[*]}
           git config --local user.name "$GITHUB_ACTOR"
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          git add ${RMD_FILENAME}.html ${PKG_NAME}/
+          if [[ $IS_BOOKDOWN == 1 ]]; then
+            git add ${PKG_NAME}/ _book/ 
+          else
+            git add ${RMD_FILENAME}.html ${PKG_NAME}/
+          fi
           git commit -m 'Re-build Litr file and package' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
