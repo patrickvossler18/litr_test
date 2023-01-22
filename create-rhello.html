@@ -393,7 +393,7 @@ usethis::use_mit_license(copyright_holder = &quot;F. Last&quot;)</code></pre>
 <span id='say_hello'>say_hello</span> &lt;- function(name, exclamation = TRUE) {
   paste0(&quot;Hello &quot;, name, ifelse(exclamation, &quot;!&quot;, &quot;.&quot;))
 }</code></pre>
-<p>test test test test test</p>
+<p>test testtest</p>
 <p>Code chunks whose first line starts with <code>#&#39;</code> are added to
 the package.</p>
 <p>We can try running it.</p>
@@ -407,7 +407,7 @@ desired:</p>
   testthat::expect_equal(<a href='create-rhello.html#say_hello'>say_hello</a>(&quot;Jacob&quot;), &quot;Hello Jacob!&quot;)
   testthat::expect_equal(<a href='create-rhello.html#say_hello'>say_hello</a>(&quot;Jacob&quot;, exclamation = FALSE), &quot;Hello Jacob.&quot;)
 })</code></pre>
-<pre><code>## Test passed 🌈</code></pre>
+<pre><code>## Test passed 😀</code></pre>
 <p>Code chunks that have one or more lines starting with
 <code>test_that(</code> (or <code>testthat::test_that(</code>) are added
 to the package as tests.</p>
