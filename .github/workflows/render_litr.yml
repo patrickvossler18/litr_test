@@ -45,7 +45,7 @@ jobs:
           # if the file name is "index" then we need to look for the package name elsewhere
           # we will look for the *-package.R file and get the package name
           if [[ $RMD_FILENAME == "index" ]]; then
-            RMD_FILENAME=($(find . -regex '.*-package\.R' -exec basename {} \;))
+            RMD_FILENAME=($(find . -type f -regex '.*-package\.R' -exec basename {} \;))
             PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
             IS_BOOKDOWN=1
           else
