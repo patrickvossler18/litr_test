@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      R_COMPILE_AND_INSTALL_PACKAGES: never
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -31,53 +30,50 @@ jobs:
           cache-version: 2
 
       - name: Install litr
-        run: |
-          options(
-            crayon.enabled = TRUE,
-            install.packages.check.source = "no",
-            pkgType = ifelse(grepl("linux", R.version$os), "source", "binary")
-          )
-          renv::install("jacobbien/litr-project:litr@*release")
+        run: renv::install("jacobbien/litr-project:litr@*release")
         shell: Rscript {0}
+
       - name: Set environment variables
         run: |
-          IS_BOOKDOWN=0
+          IS_BOOKDOWN=false
           # find doesn't allow capture groups so we'll have to separate searches
-          SEARCH_INDEX=($(find . -maxdepth 1 -type f  -regex '.*index\.[Rr][Mm][Dd]' -exec basename {} \;))
-          echo "$SEARCH_INDEX"
-          # if SEARCH_INDEX IS NULL
-          if [ -z  "$SEARCH_INDEX" ]; then
+          SEARCH_FOR_INDEX=($(find . -maxdepth 1 -type f  -regex '.*index\.[Rr][Mm][Dd]' -exec basename {} \;))
+          
+          # if SEARCH_FOR_INDEX is not an empty string
+          if [[ -n  "$SEARCH_FOR_INDEX" ]]; then
+            # if the file name is "index" then we need to look for the package name elsewhere
+            # we will look for the *-package.R file and get the package name
+            IS_BOOKDOWN=true
+            TOP_LEVEL_RMD=$(echo "$SEARCH_FOR_INDEX")
+            RMD_FILENAME=($(find . -type f -regex '.*-package\.R' -exec basename {} \;))
+            PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
+          else
             TOP_LEVEL_RMD=($(find . -maxdepth 1 -type f  -regex '.*create-.*\.[Rr][Mm][Dd]' -exec basename {} \;))
             RMD_FILENAME=${TOP_LEVEL_RMD/.*/}
             PKG_NAME=$(echo "$RMD_FILENAME" | rev | cut -d- -f1 | rev)  
-          else
-            # if the file name is "index" then we need to look for the package name elsewhere
-            # we will look for the *-package.R file and get the package name
-            IS_BOOKDOWN=1
-            TOP_LEVEL_RMD=$(echo "$SEARCH_INDEX")
-            RMD_FILENAME=($(find . -type f -regex '.*-package\.R' -exec basename {} \;))
-            PKG_NAME=$(echo "$RMD_FILENAME" | cut -d- -f1 )
           fi
           
           RMD_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "$TOP_LEVEL_RMD"))
-          # debugging echos
-          echo "$TOP_LEVEL_RMD"
-          echo "$PKG_NAME"
-          echo "$RMD_PATH"
-          echo "$IS_BOOKDOWN"
 
           # add variables to GH env to access them in the next step
           echo "RMD_PATH=$RMD_PATH" >> $GITHUB_ENV
           echo "RMD_FILENAME=$RMD_FILENAME" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "$TOP_LEVEL_RMD=$TOP_LEVEL_RMD" >> $GITHUB_ENV
-          echo "$IS_BOOKDOWN=$IS_BOOKDOWN" >> $GITHUB_ENV
-      - name: Render Rmarkdown files and Commit Results
+          echo "TOP_LEVEL_RMD=$TOP_LEVEL_RMD" >> $GITHUB_ENV
+          echo "IS_BOOKDOWN=$IS_BOOKDOWN" >> $GITHUB_ENV
+
+      - name: Render Rmarkdown files and Generate Package 
         run: |
           Rscript -e 'for (f in commandArgs(TRUE)) if (file.exists(f)) litr::render(f)' ${RMD_PATH[*]}
+          
+      - name: Run tests on the knitted package 
+        run: Rscript -e 'args = commandArgs(TRUE); pkg_path = paste0(args[1], "/"); devtools::test(pkg_path)' ${PKG_NAME}
+
+      - name: Commit Results
+        run: |
           git config --local user.name "$GITHUB_ACTOR"
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          if [[ $IS_BOOKDOWN == 1 ]]; then
+          if [[ $IS_BOOKDOWN = true ]]; then
             git add ${PKG_NAME}/ _book/ 
           else
             git add ${RMD_FILENAME}.html ${PKG_NAME}/
