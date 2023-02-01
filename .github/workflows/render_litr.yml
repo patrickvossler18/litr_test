@@ -74,7 +74,9 @@ jobs:
           git config --local user.name "$GITHUB_ACTOR"
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git config --local push.autoSetupRemote true
-          git checkout build_output 2>/dev/null || git checkout -b build_output
+          git fetch
+          # assuming the build_output branch is already created in origin
+          git checkout build_output
           if [[ $IS_BOOKDOWN = true ]]; then
             git add ${PKG_NAME}/ _book/ 
           else
