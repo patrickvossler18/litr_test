@@ -84,4 +84,4 @@ jobs:
             git add ${RMD_FILENAME}.* ${PKG_NAME}/
           fi
           git commit -m 'Re-build Litr file and package' || echo "No changes to commit"
-          git push origin/build_output || echo "No changes to commit"
+          git push origin build_output -f || echo "No changes to commit"
