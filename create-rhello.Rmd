@@ -58,7 +58,7 @@ test
 testtest
 test test test
 
-
+ test
 
 
 Code chunks whose first line starts with `#'` are added to the package.
